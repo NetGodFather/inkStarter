@@ -1,0 +1,2 @@
+# inkStarter
+ink! Contract
