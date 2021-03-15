@@ -48,7 +48,7 @@ pub mod erc20 {
     }
 
     // 定义不同错误的的枚举类型，
-    #[derive(Debug, PartialEq, Eq, scale::Encode)]
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
         InsufficientBalance,

@@ -2,10 +2,14 @@
 
 use ink_lang as ink;
 
+use ink_prelude::format;
+
 #[ink::contract]
 mod loan {
     use ink_storage::collections::HashMap as StorageHashMap;
     use erc20::Erc20;
+    use ink_env::call::FromAccountId;
+    use crate::format;
 
     #[ink(storage)]
     pub struct Loan {
@@ -25,7 +29,7 @@ mod loan {
         borrowings : StorageHashMap<AccountId, Balance>,
     }
     // 定义返回类型，当有返回值也可能返回错误的函数，需要用 Result 类型返回
-    // pub type Result<T> = core::result::Result<T, Error>;
+    pub type Result<T> = core::result::Result<T, Error>;
 
     // 定义不同错误的的枚举类型，
     #[derive(Debug, PartialEq, Eq, scale::Encode)]
@@ -50,27 +54,41 @@ mod loan {
             }
         }
 
+
+        #[ink(message)]
+        pub fn borrowings_balance( &self ) -> Balance{
+            self.borrowings_balance
+        }
+
         #[ink(message)]
         pub fn total_borrowings( &self ) -> Balance{
             self.total_borrowings
         }
 
-        // // Rechage base token for borrowing
-        // #[ink(message)]
-        // pub fn recharge_for_borrowing(&mut self, amount: Balance) -> Result<()> {
-        //     let caller = Self::env().caller();
-        //     if caller != self.owner {
-        //         return Err(Error::OnlyForOwner)
-        //     }
-        //     // let base_token = Erc20.from_account_id( Self.base_token_accountid );
-        //     let self_accountid = Self::env().account_id();
+        // Rechage base token for borrowing
+        #[ink(message)]
+        pub fn recharge_for_borrowing(&mut self, amount: Balance) -> Result<()> {
+            let caller = Self::env().caller();
+            if caller != self.owner {
+                return Err(Error::OnlyForOwner)
+            }
+            let mut base_token: Erc20 = FromAccountId::from_account_id( self.base_token_accountid );
 
-        //     // base_token.transfer_from( caller, self_accountid, amount)?;
+            let self_accountid = Self::env().account_id();
 
-        //     self.borrowings_balance = self.borrowings_balance + amount;
+            let message = format!("self_accountid =  {:?}", self_accountid);
+            ink_env::debug_println(&message);
+
+            let re = base_token.transfer_from( caller, self_accountid, amount);
+
+            let message = format!("Return =  {:?}", re);
+            ink_env::debug_println(&message);
+
+
+            self.borrowings_balance = self.borrowings_balance + amount;
             
-        //     Ok(())
-        // }
+            Ok(())
+        }
 
     }
 
